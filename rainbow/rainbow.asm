@@ -41,9 +41,8 @@ LoopVBlank:
 ; Draw 192 Visibile scan lines 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
     ldx #192
-    ldy #100
 LoopVisible:
-    sty COLUBK  ; TIA background color
+    stx COLUBK  ; TIA background color
     sta WSYNC
     dex
     bne LoopVisible
@@ -59,7 +58,7 @@ LoopOverscan:
     sta WSYNC
     dex
     bne LoopOverscan
-    
+   
     jmp NextFrame   ; back to top
 
 
