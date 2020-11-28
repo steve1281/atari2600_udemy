@@ -15,10 +15,10 @@ Start:
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
     lda #0       ; a=0
     ldx #$FF     ; x=#$ff
-
+    sta $FF      ; assign A to postion FF
 MemLoop:
+    dex          ; x-- and set flags
     sta $0,x     ; store value a inside memory $0 plus x
-    dex          ; x--
     bne MemLoop  ; Loop until x ==0 (until z flag is set)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
