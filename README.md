@@ -467,4 +467,86 @@ link: https://en.wikipedia.org/wiki/List_of_video_game_console_palettes
 for example, yellow is 1,14 MSB,LSB.
 or 1E
 
+# CRT Video Synchronization
+
+Note: I actually watched this session twice. Its pretty deep.
+
+Put a value into a register - this maps to TIA
+
+"lockstep" ?
+
+NTSC vs PAL
+
+* General discussion about how CRT scan lines work - scanlines are "beamed" onto a phosphorescent screen
+* Now adays, we have a place for every pixels (ie screen buffers)
+* But, on an Atari, we dont have nearly enough memory for that
+* So, we store scanlines
+* and need to sync /reprogram on a per scanline basis
+
+"Racing the beam" - reprogram TIA chip for each scanline.
+
+So, timing is really important, we will need to sync somehow.
+
+Horizontal blank: 
+(color clocks sorta like pixels)
+
+|<-- 68 color clocks -->|<-- 160 color clocks --------------------------> |
+|<-- not visible     -->|<--  visible                                 --> |
+
+The processor is halted until WSYNC is recieved from the TIA. 
+(so the processor sends instruction to the TIA and halts.  Then the TIA strobes the WSYNC pin.)
+(you can look at the pin out of the 6507 and see this PIN)
+
+Vertical Sync - NTSC
+
+```
+| <-- scanline 1                                                      --> |
+| <-- scanline 2                                                      --> |
+| <-- scanline 3                                                      --> |
+| <---------------------------------------------------------------------> |
+| <---                         VERTICAL BLANKS                        --> |
+..
+   37 in total
+..
+| <----------------------+----------------------------------------------> |
+| <-- 68 color clocks -->|<-- 160 wide         -------------------------> |
+| <-- not visible     -->|<-- 192 high                                --> |
+|                        |                                                |
+...   192 of these       |                                                |
+|                        |                                                |
+| <----------------------+----------------------------------------------> |
+| <-- over scan                                                       --> |
+|  30 of these
+| <---------------------------------------------------------------------> |
+
+```
+
+Assembly code example:
+
+NextFrame:
+    lda #2
+    sta VBLANK      ; turn on VBLANK
+    sta VSYNC       ; turn on VSYNC
+
+    sta WSYNC       ; store A in WSYNC halts and waits to be strobed
+    sta WSYNC       ; previsious happened, wait for the next
+    sta WSYNC       ; prev happened; wait for the next
+
+    lda #0          ; shut it down
+    sta VSYNC
+
+    lda #37
+LoopVBlank:
+    sta WSYNC   ; hit WSYNC to wait for TIA to strobe it
+    dex
+    bne LoopVBlank
+    lda #0
+    sta VBLANK     ; shut it down
+
+; --- we do similair things for the next areas ...
+
+# Painting the CRT
+see ./rainbow/rainbow.asm
+
+
 
