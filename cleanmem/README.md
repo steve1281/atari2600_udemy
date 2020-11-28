@@ -37,11 +37,52 @@ I am abandoning the windows10 environment development; I will be working in Linu
 * sudo mv dasm /usr/local/bin/.
 * chmod u+x /usr/local/bin/dasm
 
-bah
+OR
 
-wget  https://github.com/dasm-assembler/dasm/archive/2.20.14.1.tar.gz
-tar xzvf 2.20.14.1.tar.gz
-cd dasm-2.20.14.1
-make
+* wget  https://github.com/dasm-assembler/dasm/archive/2.20.14.1.tar.gz
+* tar xzvf 2.20.14.1.tar.gz
+* cd dasm-2.20.14.1
+* make
+
+```
+~/projects/dasm/dasm-2.20.14.1$ ./bin/dasm 
+DASM 2.20.14.1
+Copyright (c) 1988-2020 by the DASM team.
+...
+```
+Finally, copy to the user local binary folder:
+
+* sudo mv ./bin/dasm /usr/local/bin/.
+
+```
+Next, we need a copy of Stella
+link: https://stella-emu.github.io/downloads.html
+
+Going to get "Binary 64-bit DEB for Ubuntu 20.04" 
+So that fails. incompatible?
+Err.
+Check my linux version?
+
+~/projects/stella$ lsb_release -a
+No LSB modules are available.
+Distributor ID:	Ubuntu
+Description:	Ubuntu 20.04 LTS
+Release:	20.04
+Codename:	focal
+
+So... that not it.
+
+Try this: sudo apt-get install -y stella
+
+That worked.
+```
+
+
+# Lets build/run
+
+* cd ~/projects/atari2600_udemy/cleanmem/
+* dasm cleanmem.asm -f3 -v0 -ocart.bin
+* stella cart.bin
+* play with debugger as per lesson.
 
 
