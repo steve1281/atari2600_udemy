@@ -1,3 +1,8 @@
+# NOTES about course
+
+* this course is offered by udemy.  
+* the instructor is Gustavo Pezzi; the notes that follow are my notes from his course.
+* see: https://www.udemy.com/course/programming-games-for-the-atari-2600/learn/lecture/16077318#overview
 
 # Hardware and Specs
 
