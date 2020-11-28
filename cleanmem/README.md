@@ -3,7 +3,7 @@
 This code is a super clean/simple example of a cartridge bin allowing us
 to clean the zero page and exit.
 
-It demonstrates the housecleaning commands that all atari2600 cartridge bins will have.
+It demonstrates the housekeeping commands that all atari2600 cartridge bins will have.
 
 ## building
 
@@ -55,12 +55,12 @@ Finally, copy to the user local binary folder:
 * sudo mv ./bin/dasm /usr/local/bin/.
 
 ```
+
 Next, we need a copy of Stella
 link: https://stella-emu.github.io/downloads.html
 
 Going to get "Binary 64-bit DEB for Ubuntu 20.04" 
 So that fails. incompatible?
-Err.
 Check my linux version?
 
 ~/projects/stella$ lsb_release -a
