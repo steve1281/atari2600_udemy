@@ -320,4 +320,151 @@ Loop:
 ```
 Note: at this point, the course is doing some actual examples; see
 * ./cleanasm
-...
+
+# Different Address Modes
+
+
+* Immediate: 
+- LDA #80  ; load A register with the literal value decimal 80
+- A9 50
+
+* Absolute:
+- LDA $80  ; load A register from address $80  --> question: hex or decimal?
+- A5 80
+
+* Hmm - seems that it HEX. 
+* So is the hash # meaning immediate mode then?
+
+* Ah, he does explain this, thank you: 
+LDA #$80  ; load A register with literal hexadecimal 80 
+
+
+
+# VCS Memory Map
+
+Some ideas we have seen:
+
+* ROM: $F000 - $FFFF
+* page 0: $0000 - $00FF
+
+Where are things located in address space
+
+VCS bus - OK, first time I recall hearing this. Let me scroll up and look at my notes...
+* we had an address bus and a databus.  I wonder what he is talking about? 
+Anyway. this "new?" bus connects to the 
+*  TIA - television interface adapter.  (OK)
+*  PIA - Peripheral Interface Adapter.  (New, but sure this makes sense)
+*  ROM - Read Only Memory -Cartridge (OK)
+
+VCS Memory Map
+
+```
+$00   TIA registers - send instruction to TV (color background, etc)
+$01
+$02
+
+
+$7D
+$7E
+$7F
+```
+
+If you put a value in $09 - that color will go into the background.
+
+```
+$80  PIA RAM  
+$81
+$82
+
+
+$FD
+$FE
+$FF
+```
+
+```
+$F000   Cartridge ROM
+$F001
+$F002
+
+
+$FFFC  reset vector
+$FFFD
+$FFFE  break interupt
+$FFFF
+```
+Do we need to recall these? Well no. There is a file called vcs.h (it was included with dasm) with these
+defined in it.
+
+From: ~/projects/dasm/dasm-2.20.14.1$ vi ./machines/atari2600/vcs.h
+
+```
+    ; DO NOT CHANGE THE RELATIVE ORDERING OF REGISTERS!
+    
+VSYNC       ds 1    ; $00   0000 00x0   Vertical Sync Set-Clear
+VBLANK      ds 1    ; $01   xx00 00x0   Vertical Blank Set-Clear
+WSYNC       ds 1    ; $02   ---- ----   Wait for Horizontal Blank
+RSYNC       ds 1    ; $03   ---- ----   Reset Horizontal Sync Counter
+NUSIZ0      ds 1    ; $04   00xx 0xxx   Number-Size player/missle 0
+NUSIZ1      ds 1    ; $05   00xx 0xxx   Number-Size player/missle 1
+COLUP0      ds 1    ; $06   xxxx xxx0   Color-Luminance Player 0
+COLUP1      ds 1    ; $07   xxxx xxx0   Color-Luminance Player 1
+COLUPF      ds 1    ; $08   xxxx xxx0   Color-Luminance Playfield
+COLUBK      ds 1    ; $09   xxxx xxx0   Color-Luminance Background
+CTRLPF      ds 1    ; $0A   00xx 0xxx   Control Playfield, Ball, Collisions
+REFP0       ds 1    ; $0B   0000 x000   Reflection Player 0
+REFP1       ds 1    ; $0C   0000 x000   Reflection Player 1
+PF0         ds 1    ; $0D   xxxx 0000   Playfield Register Byte 0
+PF1         ds 1    ; $0E   xxxx xxxx   Playfield Register Byte 1
+PF2         ds 1    ; $0F   xxxx xxxx   Playfield Register Byte 2
+RESP0       ds 1    ; $10   ---- ----   Reset Player 0
+RESP1       ds 1    ; $11   ---- ----   Reset Player 1
+RESM0       ds 1    ; $12   ---- ----   Reset Missle 0
+RESM1       ds 1    ; $13   ---- ----   Reset Missle 1
+RESBL       ds 1    ; $14   ---- ----   Reset Ball
+AUDC0       ds 1    ; $15   0000 xxxx   Audio Control 0
+AUDC1       ds 1    ; $16   0000 xxxx   Audio Control 1
+AUDF0       ds 1    ; $17   000x xxxx   Audio Frequency 0
+AUDF1       ds 1    ; $18   000x xxxx   Audio Frequency 1
+AUDV0       ds 1    ; $19   0000 xxxx   Audio Volume 0
+AUDV1       ds 1    ; $1A   0000 xxxx   Audio Volume 1
+GRP0        ds 1    ; $1B   xxxx xxxx   Graphics Register Player 0
+```
+ 
+In our assembly, we include "vcs.h" and "macro.h"
+
+(so I guess I better copy these files into the project hmm?)
+
+He provides a link for this.  I have the source, so for now, I will use that.
+
+```
+steve@cplusdev:~/projects/atari2600_udemy$ mkdir include
+steve@cplusdev:~/projects/atari2600_udemy$ cd include
+steve@cplusdev:~/projects/atari2600_udemy/include$ cp ~/projects/dasm/dasm-2.20.14.1/machines/atari2600/vcs.h .
+steve@cplusdev:~/projects/atari2600_udemy/include$ cp ~/projects/dasm/dasm-2.20.14.1/machines/atari2600/macro.h .
+```
+
+Now I add to the top of my assembly files
+
+```
+include ../include/vcs.h
+include ../include/macro.h
+```
+He mentions also that the page of memory is 256 bytes, when we only have 128 byte system. 
+I assume that there is a mode thing happening, but not explained.
+
+yet.
+
+Next, we review the vcs.h.  
+
+OK see ./colorbg for code example
+He is moving the .h files into the project.  
+I really don't want to do this; it will result with many .h files distributed.
+Do I have to?
+
+For colors:
+link: https://en.wikipedia.org/wiki/List_of_video_game_console_palettes
+for example, yellow is 1,14 MSB,LSB.
+or 1E
+
+
