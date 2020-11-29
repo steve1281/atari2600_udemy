@@ -794,4 +794,132 @@ also, note about REPEAT n /REPEND.  This is a straight up cut/paste. It can resu
 # Varibles in memory
 also see ./screenobjects_score_fix/screenobjects.asm
 
+# Registers & Variables
+
+For example:
+
+```
+int lives = 5;
+int level = 1;
+int score = 30;
+```
+
+Is a register the same as a variable?
+* no.  variables need space in memory in RAM
+* registers have dedicated space in the CPU. 
+* registers may do specific things for the CPU (like a SP register)
+
+* int lives 5;
+* the value needs to be copied to the register from RAM
+* acted on
+* then the value of register can be copied back
+
+eg
+
+```
+score = score + 1
+
+lda score
+ina         ; is this even a thing? well you get the idea
+sta score
+```
+
+
+# Positioning
+
+* positioning objects, missles , players etc
+
+* we can create variables at the top of our code
+eg)
+```
+    seg.u Variables
+    org $80
+PlayerHeight equ 9 ; hard code the sprite height to 9 rows
+PlayerYPos byte    ; declare a variable for the sprite
+
+;;;;
+;; lookup table for the player graphics
+;;;
+PlayerBitmap:
+    byte #%00000000
+    byte #%00101000
+    byte #%01110100
+    byte #%11111010
+    byte #%11111010
+    byte #%11111010
+    byte #%11111010
+    byte #%01101100
+    byte #%00110000
+;;;
+;; lookup player colors
+;;;
+PlayerColor:
+    byte #$00
+    byte #$40
+    byte #$40
+    byte #$40
+    byte #$40
+    byte #$42
+    byte #$42
+    byte #$44
+    byte #$D2
+```
+* note the colors and bitmaps are upside down here. 
+* its up to use how they are stored though
+* why did he do it this way? 
+
+Now we can render:
+
+```
+;;;
+; draw the 192 vis
+;;;
+    ldx #192        ; number of scanlines
+Scanline:
+    txa             ; A = X
+    sec             ; set the carry flag
+    sbc PlayerYPos  ; subtract sprite Y coordinate
+    cmp #P0Height   ; are we inside the sprite height bounds
+    bcc LoadBitmap  ; if the result < SpriteHeight, call subroutine
+    lda #0          ; else, set index to 0
+
+LoadBitmap:
+    tay
+    lda P0Bitmap,Y  ; load the player bitmap slice of data
+    sta GRP0        ; set graphics for player 0 slice
+    lda P0Color,Y   ; get the player color from lookup
+    sta COLUP0      ; set the color for the player 0 slice
+    sta WSYNC       ; wait for next scanline
+    dex
+    bne Scanline    ; repeat until finished
+```
+
+* we start at 192 at the top. so the Y coordinates are reversed.
+* Y=0 is the bottem left.
+
+* Look at ./verticalpos/verticalpos.asm for an example
+* ha ha - he forgot to mention that he decrements the PlayerYPos
+* (I spent 15 mins wondering why his apple drops, and eventually put in my own decrement)
+* Then I went back to the video, just to hear that oh yah, need to ...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
