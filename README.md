@@ -699,4 +699,66 @@ scanline = "☐☐☐☐☐☐☐☐☐☐☐ ☐ ☐ ☐      ☐ ☐ ☐ ☐�
 scanline = "☐☐☐☐☐☐☐☐☐☐☐ ☐ ☐ ☐      ☐ ☐ ☐ ☐☐☐☐☐☐☐☐☐☐☐"
 ```
 
+# Player
+
+* player0 is 8 bit pattern GRP0  with forground color COLUP0
+* can be changed per scan line
+* 10100001 becomes "☐ ☐    ☐"
+* repeat this for player1, GRP1 and COLUP1
+
+* you can "stretch" the player0 using NUSIZ0
+* you can "reflect/invert" using REFP0
+
+* ok, this is random functionality.
+
+```
+000 player
+010 player player
+011 player player player
+100 player                       player
+101 p l a y e r
+110 player        player         player
+111 p  l  a  y  e  r
+```
+And of course, reflect causes this to be reflected
+
+```
+000 reyalp
+010 reyalp reyalp
+011 reyalp reyalp reyalp
+100 reyalp                       reyalp
+101 r e y a l p 
+110 reyalp        reyalp         reyalp
+111 r  e  y  a  l  p
+```
+
+
+# missles an balls
+
+* its one "pixel"
+* can be stretched (2, 4, 8)
+* M0 and M1 use P0 and P1 colors
+* BL uses the PF foreground
+* only two missles on the same scan line. (which makes sense)
+
+* for each scan line, set up TIA need to set up register before the "beam" reaches
+* very short - need to be fast and optimal
+
+## designing a basic layout
+
+* he starts with a basic "box" layout for the playfield
+```
+----------- 4567765432100123456776543210012345677654
+7 blanks
+7 solid     XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+            XX                                    XX
+164 lines   XX                                    XX
+            XX                                    XX
+7 solid     XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+7 blanks    
+----------- 4567765432100123456776543210012345677654
+```
+
+This will be built in the code ./playfield/playfield.asm
+(he uses the 8bitworkshop tool javatari; thats fine but doesn't go well with my git repo)
 
