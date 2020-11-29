@@ -787,4 +787,11 @@ See ./playfield_exercise/playfield.asm for solution.
 # Player Bitmap and Scoreboard
 see ./screenobjects/screenobjects.asm
 
+# Scoreboard Color
+see ./screenobjects_score_fix/screenobjects.asm
+also, note about REPEAT n /REPEND.  This is a straight up cut/paste. It can result in a lot of used space on the cartridge.
+
+# Varibles in memory
+also see ./screenobjects_score_fix/screenobjects.asm
+
 
