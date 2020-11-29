@@ -750,15 +750,38 @@ And of course, reflect causes this to be reflected
 ```
 ----------- 4567765432100123456776543210012345677654
 7 blanks
-7 solid     XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
-            XX                                    XX
-164 lines   XX                                    XX
-            XX                                    XX
-7 solid     XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+7 solid      XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX 
+             XX                                  XX 
+164 lines    XX                                  XX 
+             XX                                  XX 
+7 solid      XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX 
 7 blanks    
 ----------- 4567765432100123456776543210012345677654
 ```
 
 This will be built in the code ./playfield/playfield.asm
 (he uses the 8bitworkshop tool javatari; thats fine but doesn't go well with my git repo)
+
+# Playfield exercise
+
+Not entirely sure what he wants here.
+But the exercise is to show that we can manipulate PFn to modify the playfield
+In this case, we can just add bit 7 to PF2 and create the center bar:
+
+```
+----------- 4567765432100123456776543210012345677654
+7 blanks
+7 solid      XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX 
+             XX                XX                XX 
+164 lines    XX                XX                XX 
+             XX                XX                XX 
+7 solid      XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX 
+7 blanks    
+----------- 4567765432100123456776543210012345677654
+```
+
+See ./playfield_exercise/playfield.asm for solution.
+(I also messed about with couple variations, like setting bit 6 in PF2.)
+
+
 
