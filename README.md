@@ -784,4 +784,7 @@ See ./playfield_exercise/playfield.asm for solution.
 (I also messed about with couple variations, like setting bit 6 in PF2.)
 
 
+# Player Bitmap and Scoreboard
+see ./screenobjects/screenobjects.asm
+
 

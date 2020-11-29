@@ -5,7 +5,7 @@
     seg code
     org $F000
 
-Start:
+Reset:
     CLEAN_START
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -17,6 +17,6 @@ Start:
 ;; set cartridge size to 4K, set restart and interrupt vectors
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
     org $FFFC
-    .word Start
-    .word Start
+    .word Reset
+    .word Reset
 

@@ -117,7 +117,7 @@ StartFrame:
         sta WSYNC
     REPEND
     lda #0
-    sta VSYNC
+    sta VBLANK
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;  loop to next frame
