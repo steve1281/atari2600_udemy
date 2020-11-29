@@ -549,4 +549,154 @@ LoopVBlank:
 see ./rainbow/rainbow.asm
 
 
+# TIA Screen Objects
+* background
+* playfield - objects/obstacles/walls in the "arena"
+* player 0 - size, width, height. color
+* player 1
+* missle 0
+* missle 1
+* ball
+
+We can poke different values for these. 
+
+Scanlines are rendered based on /via the TIA registers
+
+TIA registers are mapped into our memory.
+
+* background takes whole visible background (160x192)
+* one color per scan
+
+* playfield uses a 20 bit pattern, over left side of scanline
+* one color per scan
+* either a repeat, or a reflection of the same pattern
+* this is odd I think
+* PF0, PF1, PF2
+* COLOUPF
+* CTRLPF
+- D0: Reflect
+- D1: Score
+- D2: Priority
+- D4-D5: Ball size (1, 2, 4, 8)
+
+The playfield is build by reading PF0, PF1 and PF2
+
+```
+|   Left side of the play field                                               |
+|   PF0        |   PF1                        |   PF2                         |
+|4 | 5 | 6 | 7 |7 | 6 | 5 | 4 | 3 | 2 | 1 | 0 | 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 |
+```
+
+Set the register, scanline, repeat.
+
+PF0 = 0000     @ <--- read this way
+PF1 = 00000000 @ ---> read this way
+PF2 = 00000000 @ <--- read this way
+REFLECT = 0
+
+scanline = "                                       "
+
+Another:
+
+```
+PF0 = 0001     @ <--- read this way
+PF1 = 00000000 @ ---> read this way
+PF2 = 00000000 @ <--- read this way
+REFLECT = 0
+----------- PF0 PF1     PF2
+----------- 45677654321001234567
+----------- 0123456789012345678901234567890123456789
+scanline = "☐                   ☐                   "
+```
+
+Another:
+
+```
+PF0 = 0011     @ <--- read this way
+PF1 = 00000000 @ ---> read this way
+PF2 = 00000000 @ <--- read this way
+REFLECT = 0
+----------- PF0 PF1     PF2
+----------- 45677654321001234567
+----------- 0123456789012345678901234567890123456789
+scanline = "☐☐                 ☐☐                  "
+
+```
+
+Another:
+
+```
+PF0 = 1111     @ <--- read this way
+PF1 = 11110000 @ ---> read this way
+PF2 = 00000000 @ <--- read this way
+REFLECT = 0
+----------- PF0 PF1     PF2
+----------- 45677654321001234567
+----------- 0123456789012345678901234567890123456789
+scanline = "☐☐☐☐☐☐☐☐           ☐☐☐☐☐☐☐☐            "
+```
+
+Another:
+
+```
+bits  76543210
+PF0 = 1111xxxx @ <--- read this way
+PF1 = 11111110 @ ---> read this way
+PF2 = 00010101 @ <--- read this way
+REFLECT = 0
+----------- 0123456789012345678901234567890123456789
+----------- PF0 PF1     PF2
+----------- 45677654321001234567
+scanline = "☐☐☐☐☐☐☐☐☐☐☐ ☐ ☐ ☐   ☐☐☐☐☐☐☐☐☐☐☐ ☐ ☐ ☐   "
+```
+
+```
+My note: Look, I don't know why they did it this way, but its not complicated. 
+All you need to remember is the bit pattern rendering order: 45677654321001234567 
+and that PF0 only renders its top most 4 bits.  The other half of the screen is either
+a repeat (so 45677654321001234567 again) or a reflection.
+
+So the question now is, how do they do reflection?  Do they re-order the bits, or the PFn, or both?
+Normal order is PF0PF1PF2 and this defines 20 blocks.
+A nonreflect (so REFLECT=0) looks like: PF0PF1PF2PF0PF1PF2.
+
+So what does it look like when REFLECT=1?
+
+Ah, he provides an example
+```
+
+
+Another:
+
+```
+bits  76543210
+PF0 = 1111xxxx @ <--- read this way
+PF1 = 11111110 @ ---> read this way
+PF2 = 00010101 @ <--- read this way
+REFLECT = 1
+----------- 0123456789012345678901234567890123456789
+----------- PF0 PF1     PF2     PF2     PF1     PF0
+----------- 4567765432100123456776543210012345677654
+scanline = "☐☐☐☐☐☐☐☐☐☐☐ ☐ ☐ ☐      ☐ ☐ ☐ ☐☐☐☐☐☐☐☐☐☐☐"
+```
+
+Ok, the key here is total bit reversal.
+
+Lastly, note how this is repeated, to draw out our play field for the game:
+
+```
+scanline = "☐☐☐☐☐☐☐☐            ☐☐☐☐☐☐☐☐            "
+scanline = "☐☐☐☐☐☐☐☐            ☐☐☐☐☐☐☐☐            "
+scanline = "☐☐☐☐☐☐☐☐            ☐☐☐☐☐☐☐☐            "
+scanline = "☐☐☐☐☐☐☐☐☐☐☐ ☐ ☐ ☐   ☐☐☐☐☐☐☐☐☐☐☐ ☐ ☐ ☐   "
+scanline = "☐☐☐☐☐☐☐☐☐☐☐ ☐ ☐ ☐   ☐☐☐☐☐☐☐☐☐☐☐ ☐ ☐ ☐   "
+scanline = "☐☐☐☐☐☐☐☐☐☐☐ ☐ ☐ ☐   ☐☐☐☐☐☐☐☐☐☐☐ ☐ ☐ ☐   "
+scanline = "☐☐☐☐☐☐☐☐☐☐☐ ☐ ☐ ☐   ☐☐☐☐☐☐☐☐☐☐☐ ☐ ☐ ☐   "
+scanline = "☐☐☐☐☐☐☐☐☐☐☐ ☐ ☐ ☐      ☐ ☐ ☐ ☐☐☐☐☐☐☐☐☐☐☐"
+scanline = "☐☐☐☐☐☐☐☐☐☐☐ ☐ ☐ ☐      ☐ ☐ ☐ ☐☐☐☐☐☐☐☐☐☐☐"
+scanline = "☐☐☐☐☐☐☐☐☐☐☐ ☐ ☐ ☐      ☐ ☐ ☐ ☐☐☐☐☐☐☐☐☐☐☐"
+scanline = "☐☐☐☐☐☐☐☐☐☐☐ ☐ ☐ ☐      ☐ ☐ ☐ ☐☐☐☐☐☐☐☐☐☐☐"
+scanline = "☐☐☐☐☐☐☐☐☐☐☐ ☐ ☐ ☐      ☐ ☐ ☐ ☐☐☐☐☐☐☐☐☐☐☐"
+```
+
 
