@@ -902,6 +902,109 @@ LoadBitmap:
 * (I spent 15 mins wondering why his apple drops, and eventually put in my own decrement)
 * Then I went back to the video, just to hear that oh yah, need to ...
 
+# Horizontal Position
+
+* annoying becuase
+- say at a specific xpos
+- start scan line at left
+- control how long does it take
+- until the beam gets to our xpos
+- how many cpu clock cycles to get the position
+- once those cycles passed, we reset player 0 then the sprit is positioned
+
+* wait for TIA
+* write to RESP0 (or equivalent for other sprites)
+
+* for a certain X horizontal psotion on the scrtene
+
+```
+sta WSYNC
+Wait (X+68)/3 CPU cycles
+recall HBLANK, 68 TIA cycles. So we need to account for that
+TIA clock cycles (pixels)
+divided by 3 because TIA clock cycles are slower than CPU; 3 TIA clock cycles == 1 CPU clock cycle
+strobe (write to) register RESP0
+
+
+| <-- 68 color clocks -->|<-- 160 wide         -------------------------> |
+| HBLANK                 | Visible Scanline                               |
+
+```
+
+So, code similair to:
+
+```
+
+    ldx #5     ; x = 5
+    sta WSYNC  ; wait for next scanline
+
+Loop:
+    dex        ; x--
+    bne Loop   ; branch if x not zero
+    sta RESP0  ; fix the player0 horizontal position
+
+
+```
+* But, how long, where does X goes?
+* How many clock cycles did all that take?
+```
+Each insturcion of 6507 takes a certain amount of clock cycles
+  DEX takes 2 CPU cycles
+  BNE takes 3 CPU cycles 
+  so 5 cycles in loop
+5 cycles ==> 15 clock cycles
+So 75 TIA clock cycles
+```
+
+# Fine Horizontal Positioning
+
+* the TIA has special registers that allow fine positioning, by tweaking -8 to +7 pixels
+* so set rough position by 15
+* then set fine position
+* for desired X
+
+```
+WSYNC
+wait (X+68)/15 and save the division remainder
+example:  47/15 == 15*3 + 2
+strobe RESPO at 15 incrment
+write to HMP0 register to fine tune
+strobe WSYNC again
+strobe HMOVE to apply
+
+
+```
+
+Example code:
+
+``
+    lda P0XPos          ; A = desired X position
+    sta WSYNC           ; wait for next strobe
+    sta HMCLR           ; clear old horizontal position
+
+    sec                 ; set carry flag before subtraction
+DivideLoop:
+    sbc #15             ; subtract 15
+    bcs DivideLoop      ; loop while carry flag set
+
+    eor #7              ; adjust the range from -8 to 7
+    asl                 ; shift left by 4; HMP0 uses only TOP 4 bits
+    asl 
+    asl
+    asl
+    sta HMP0            ; set fine position
+    sta RESP0           ; set player at the 15 step
+    sta WSYNC           ; wait for next scanline
+    sta HMOVE           ; apply fine position
+
+```
+Next up, example in action : horizontalpos/horizontalpos.asm
+
+
+
+
+
+
 
 
 
