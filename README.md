@@ -1000,12 +1000,89 @@ DivideLoop:
 ```
 Next up, example in action : horizontalpos/horizontalpos.asm
 
+# Counting Clock Cycles
 
+* this can be very very important
+* constantly in a race against in the beam
+* clock cycles per instruction
+* each instuction takes a certain amount of clock cycles
+* refer to 6502.org/tutorials/6502opcodes.html
+* but note that depending on the instruction, on the addressing scheme, etc the timing may be different
+* We will have to count clock cycles.
+* also instrucitions can take longer in certain conditions.
+* a branch not taken is 2 cycles, add one if taken, add another if a page boundry is crossed
 
+# The NOP
 
+* the NOP instruction does nothing
+* the NOP instruction uses two clock cycles
 
+# Joystick Input
 
+* input ports/registers
+* $280 SWCHA Joysticks/Controllers 
+* $282 SWCHB Front-panel switches
+* (from the PIA)
+* VCS has several switches in the fron panel
+- A/B difficulty switch for player 0 and player 1
+- black-white /color
+- game select
+- game reset
 
+* mostly interested in SWCHA
+* 10111111
+* up/dn/lf/rt
+* LSB is player 1, MSB is player 0
+* 0 means depressed - active.
+
+```
+ 1 - P0 RT
+ 0 - P0 LF
+ 1 - P0 DN
+ 1 - P0 UP
+ 1 - P1 RT 
+ 1 - P1 LF
+ 1 - P1 DN
+ 1 - P1 UP
+
+```
+
+Example code
+
+```
+
+CheckP0Up:
+    lda #%0001000
+    bit SWCHA
+    bne CheckP0Down
+    ; code for P0-Up here.
+
+CheckP0Down:
+    lda #%0010000
+    bit SWCHA
+    bne CheckP0Left
+    ; code for P0-Down here.
+
+CheckP0Left:
+    lda #%01000000
+    bit SWCHA
+    bne CheckP0Right
+    ; code for P0-Left here.
+
+CheckP0Right:
+    lda #%10000000
+    bit SWCHA
+    bne NoInput
+    ; code for P0-Right here.
+
+NoInput:
+    ; cont.
+
+```
+
+* recall BIT tests the A reg, logical AND, sets flags, but doesn't store results.
+
+OK - time for a practical example ./joystick/joystick.asm
 
 
 

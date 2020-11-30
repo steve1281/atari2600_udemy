@@ -51,8 +51,26 @@ StartFrame:
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Set player horizontal position while in VBLANK
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-; fill this out
 
+    lda P0XPos     ; load register A with desired X position
+    and #$7F       ; AND position with $7F to fix range
+    sta WSYNC      ; wait for next scanline
+    sta HMCLR      ; clear old horizontal position values
+
+    sec            ; set carry flag before subtraction
+DivideLoop:
+    sbc #15        ; subtract 15 from the accumulator
+    bcs DivideLoop ; loop while carry flag is still set
+
+    eor #7         ; adjust the remainder in A between -8 and 7
+    asl            ; shift left by 4, as HMP0 uses only 4 bits
+    asl
+    asl
+    asl
+    sta HMP0       ; set fine position
+    sta RESP0      ; reset 15-step brute position
+    sta WSYNC      ; wait for next scanline
+    sta HMOVE      ; apply the fine position offset
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Let the TIA output the remaining lines of VBLANK 
@@ -67,7 +85,39 @@ StartFrame:
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Draw the 192 visible scanlines 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-; fill this in
+    REPEAT 160
+        sta WSYNC  ; wait for 160 empty scanlines
+    REPEND
+
+    ldy #17        ; counter to draw 17 rows of player0 bitmap
+DrawBitmap:
+    lda P0Bitmap,Y ; load player bitmap slice of data
+    sta GRP0       ; set graphics for player 0 slice
+
+    lda P0Color,Y  ; load player color from lookup table
+    sta COLUP0     ; set color for player 0 slice
+
+    sta WSYNC      ; wait for next scanline
+
+    dey
+    bne DrawBitmap ; repeat next scanline until finished
+
+    lda #0
+    sta GRP0       ; disable P0 bitmap graphics
+
+    lda #$FF       ; enable grass playfield
+    sta PF0
+    sta PF1
+    sta PF2
+
+    REPEAT 15
+        sta WSYNC  ; wait for remaining 15 empty scanlines
+    REPEND
+
+    lda #0         ; disable grass playfield
+    sta PF0
+    sta PF1
+    sta PF2
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -80,9 +130,44 @@ Overscan:
         sta WSYNC
     REPEND
 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;  
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Joystick input test for P0 up/down/left/right
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+; 0 means its depressed (active)
+; so the logic is we AND. if the result is 0, then its active
+; BNE branch not equal (so after the AND we got a non-0 value)
+; so if nothing is active we would expect 11111111 & 00010000 = 0001000 
+; BNE branch if not 0. So, its not depressed, the two 1 bits give us 
+; a non-zero, and this forces the branch.
+; Similairly, if the up was being pressed, 1110111 & 00010000 = 0000000
+; which is 0, so the branch doesn't happen.
+;
+CheckP0Up:
+    lda #%00010000
+    bit SWCHA
+    bne CheckP0Down
+    inc P0XPos
+
+CheckP0Down:
+    lda #%00100000
+    bit SWCHA
+    bne CheckP0Left
+    dec P0XPos
+
+CheckP0Left:
+    lda #%01000000
+    bit SWCHA
+    bne CheckP0Right
+    dec P0XPos
+
+CheckP0Right:
+    lda #%10000000
+    bit SWCHA
+    bne NoInput
+    inc P0XPos
+
+NoInput:
+    ; fallback when no input was performed
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Loop to next Frame
