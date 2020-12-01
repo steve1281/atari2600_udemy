@@ -1170,15 +1170,38 @@ To call the subroutine
 
 # Pointers
 
- 
+* direct addressing via labels in memory.
+* lda ArrowDown,Y
+* then inc Y in a loop, grabbing entries.
+* BUT
+* sometimes the label is stored in memory too
+* so the ArrowDown is stored in memory too
+* this is called indirect addressing
+* say you have ArrowDown and ArrowUP
+* then create a:
+```
+   SpritePtr word    ; 16 bits (its a memory address)
 
+    lda #<ArrowDown
+    sta SpritePtr   ; store in lo byte
+    lda #>ArrowDown 
+    sta SpritePtr+1
+```
 
+```
+the memory address of ArrowDown is 16 bits.
+We can only store 8 bits in A
+So, we grab the < bits into A, then store
+and then the > bits into A, then store.
+```
 
+Now the indirect addressing is
 
+* ldy #5
+* lda (SpritePtr),Y  ; convert SpritePtr to a memory address, add 5, return value at
+* sta Value
 
-
-
-
-
+Its worth noting how useful this is for animations. We can create a PlayerPtr and cycle it through 
+various bitmaps, thus making it look "animated".
 
 
