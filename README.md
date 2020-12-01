@@ -1204,4 +1204,8 @@ Now the indirect addressing is
 Its worth noting how useful this is for animations. We can create a PlayerPtr and cycle it through 
 various bitmaps, thus making it look "animated".
 
+# Creating Sprites
+
+link: playerpal 2600
+https://alienbill.com/2600/playerpalnext.html
 
