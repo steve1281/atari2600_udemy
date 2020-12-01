@@ -1084,14 +1084,93 @@ NoInput:
 
 OK - time for a practical example ./joystick/joystick.asm
 
+# Bitwise Operators
+
+* AND, OR and XOR
+
+```
+    01110111
+AND 11010010
+    --------
+    01010010
+```
+
+```
+    01110111
+ORA 11010010
+    --------
+    11110111
+```
 
 
+```
+    01110111
+EOR 11010010
+    --------
+    10100101
+```
+
+```
+NOT 01110111
+    10001000
+
+There is NO NOT in 6502.
+
+So we XOR 1111111 instead
+
+    01110111
+EOR 11111111
+    --------
+    10001000
+```
+
+* BIT is an AND, but doesnt set the A register
+* speaking of, these all acts on A register
+* eg) EOR $FF ; this is a NOT on whatever is in the A register.
 
 
+# Subroutines and the Stack
 
+* recall the work we did to do the horizontal movement for player0
+* the HMP0 and related manipulation
+* We need to do same things, for HMP1. HMM0, HMM1, and HMBL
+* so, a subroutine is a really good idea.
+* ...
+* subroutine:
 
+```
+SetObjectXPos subroutine  ; <-- note this
+    sta WSYNC
+    sec
+.Div15Loop                ; <-- note the dot(.) The assembler will make this local
+...
 
+    rts                   ; return subroutine
 
+```
+
+To call the subroutine
+
+```
+    jsr SetObjectXPos   ; call after setting up X,Y, A registers with expected values.
+```
+
+# Stack
+
+* simple idea - place in memory where we can drop values, and later pull off of
+* we only have three registers
+* stack can "save" your place push 
+* do other stuff
+* and later pop the value back
+* PHA push A to the stack
+* PLA pull A from the stack  (pull instead of pop eh)
+* stack has a limit. It can overflow.
+* example : ./stackpushpop/stackpushpop
+* note about example, you need to run it in the debugger to watch the SP and values change.
+
+# Pointers
+
+ 
 
 
 
