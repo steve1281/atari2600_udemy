@@ -229,14 +229,28 @@ CheckP0Left:
 CheckP0Right:
     lda #%10000000          ; player 0 joystick right
     bit SWCHA
-    bne NoInput; 
+    bne EndInput; 
     inc JetXPos             ; logic for a right
     lda JET_HEIGHT
     sta JetAnimOffset       ; second frame
 
-NoInput:
-    ; logic for no input, if any
+EndInput: 
 
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Calculations to update position for next frame
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+UpdateBomberPosition:
+    lda BomberYPos
+    clc
+    cmp #0
+    bmi .ResetBomberPosition        ; if less than 0
+    dec BomberYPos
+    jmp EndPositionUpdate
+.ResetBomberPosition
+    lda #96
+    sta BomberYPos
+EndPositionUpdate: 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Loop to next Frame
