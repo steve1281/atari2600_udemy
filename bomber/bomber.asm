@@ -41,7 +41,8 @@ Reset:
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
     lda #10         ; A = 10
     sta JetYPos     ; JetYPos = A
-    lda #60
+    ;lda #60
+    lda #0
     sta JetXPos
     lda #83
     sta BomberYPos
@@ -92,7 +93,16 @@ StartFrame:
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Set player horizontal position while in VBLANK
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-; fill this out
+    lda     JetXPos
+    ldy     #0
+    jsr     SetObjectXPos
+
+    lda     BomberXPos
+    ldy     #1
+    jsr     SetObjectXPos
+
+    sta WSYNC
+    sta HMOVE          ; apply the Horizontal offset
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -184,6 +194,32 @@ Overscan:
 ;; Loop to next Frame
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
     jmp StartFrame
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;  Subroutines
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+; handle object horizontal position with fine offset
+; A is target X-coord
+; Y is the object type (0: player0, 1:player1, 2:missle0 3: missle1, 4:ball)
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;
+SetObjectXPos subroutine
+    sta     WSYNC       ; start a fresh scan line
+    sec                 ; set carry before subtraction
+.Div15Loop
+    sbc #15            ; division is subtraction until you can't 
+    bcs .Div15Loop
+    eor #7
+    asl
+    asl
+    asl
+    asl                 ; four left shifts to get only top 4 bits
+    sta HMP0,Y          ; store fine offset into the HMxx
+    sta RESP0,Y         ; fix object pos in the 15 step increment
+    rts
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;  Lookup tables for player graphics bitmap  
