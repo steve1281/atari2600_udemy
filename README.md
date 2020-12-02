@@ -521,6 +521,8 @@ Vertical Sync - NTSC
 
 ```
 
+![](images/NTSC_Timing.jpg) 
+
 Assembly code example:
 
 NextFrame:
@@ -698,6 +700,8 @@ scanline = "☐☐☐☐☐☐☐☐☐☐☐ ☐ ☐ ☐      ☐ ☐ ☐ ☐�
 scanline = "☐☐☐☐☐☐☐☐☐☐☐ ☐ ☐ ☐      ☐ ☐ ☐ ☐☐☐☐☐☐☐☐☐☐☐"
 scanline = "☐☐☐☐☐☐☐☐☐☐☐ ☐ ☐ ☐      ☐ ☐ ☐ ☐☐☐☐☐☐☐☐☐☐☐"
 ```
+
+![](images/TIA_Playfield.png)
 
 # Player
 
