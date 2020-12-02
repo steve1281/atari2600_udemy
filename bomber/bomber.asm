@@ -106,7 +106,7 @@ StartFrame:
     sta VBLANK  ; turn off VBLANK
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; Draw the 192 visible scanlines 
+;; Draw the 96 visible scanlines (2 line kernal, 192/2) 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; fill this in
 GameVisibleLine:
@@ -128,9 +128,42 @@ GameVisibleLine:
     lda #0
     sta PF2
 
-    ldx #192            ; X counts of remaining scanlines
+    ldx #96            ; X counts of remaining scanlines
 .GameLineLoop:
-    sta WSYNC           ;
+.AreWeInsideJetSprite:
+    txa             ; a =x
+    sec             ; set carry flag before subtraction
+    sbc JetYPos     ; 
+    cmp JET_HEIGHT  ; less than, then drawing JetSprite
+    bcc .DrawSpriteP0   
+    lda #0          ; else, set up lookup index 0
+
+.DrawSpriteP0:
+    tay                     ; Y = A
+    lda (JetSpritePtr),Y    ; Y is the only indirect register
+    sta WSYNC               ; need a scanline
+    sta GRP0                ; set graphics player0
+    lda (JetColorPtr),Y
+    sta COLUP0              ; set color of player0
+
+.AreWeInsideBomberSprite:
+    txa             ; a =x
+    sec             ; set carry flag before subtraction
+    sbc BomberYPos     ; 
+    cmp BOMBER_HEIGHT  ; less than, then drawing JetSprite
+    bcc .DrawSpriteP1   
+    lda #0          ; else, set up lookup index 0
+
+.DrawSpriteP1:
+    tay                     ; Y = A
+    lda #%00000101
+    sta NUSIZ1              ; stretch player1
+    lda (BomberSpritePtr),Y ; Y is the only indirect register
+    sta WSYNC               ; need a scanline
+    sta GRP1                ; set graphics player1
+    lda (BomberColorPtr),Y
+    sta COLUP1              ; set color of player1
+    
     dex                 ; x-- (decrement x)
     bne .GameLineLoop   ; repeat until x == 192
 
@@ -158,7 +191,7 @@ Overscan:
 
 JetSprite:
         .byte #%00000000        ; note the additional padding 00000000
-        .byte #%00100100
+        .byte #%00010100
         .byte #%01111111
         .byte #%00111110
         .byte #%00011100
