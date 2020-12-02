@@ -182,6 +182,7 @@ GameVisibleLine:
 ;; Output 30 VBLANK overscan lines to complete our frame 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 Overscan:
+
     lda #2
     sta VBLANK  ; turn on VBLANK
     REPEAT 30
@@ -189,6 +190,38 @@ Overscan:
     REPEND
     lda #0
     sta VBLANK
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; joystick player 0 controls
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+CheckP0Up:
+    lda #%00010000          ; player 0 joystick up
+    bit SWCHA
+    bne CheckP0Down         ; 
+    inc JetYPos             ; logic for Up
+
+CheckP0Down:
+    lda #%00100000          ; player 0 joystick dn
+    bit SWCHA
+    bne CheckP0Left         ; 
+    dec JetYPos             ; logic for dn
+
+
+CheckP0Left:
+    lda #%01000000          ; player 0 joystick left
+    bit SWCHA
+    bne CheckP0Right         ; 
+    dec JetXPos              ; logic for left
+
+CheckP0Right:
+    lda #%10000000          ; player 0 joystick right
+    bit SWCHA
+    bne NoInput; 
+    inc JetXPos             ; logic for a right
+
+NoInput:
+    ; logic for no input, if any
+
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Loop to next Frame
