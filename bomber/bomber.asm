@@ -19,6 +19,7 @@ JetSpritePtr    word    ; 2 bytes pointer 0 sprite lookup table
 JetColorPtr     word
 BomberSpritePtr word
 BomberColorPtr  word
+JetAnimOffset   byte
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -48,6 +49,8 @@ Reset:
     sta BomberYPos
     lda #54
     sta BomberXPos
+    lda #0
+    sta JetAnimOffset
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Init pointers to correct lookup table addresses
@@ -149,6 +152,8 @@ GameVisibleLine:
     lda #0          ; else, set up lookup index 0
 
 .DrawSpriteP0:
+    clc                     ; before an addition clear the carry
+    adc JetAnimOffset
     tay                     ; Y = A
     lda (JetSpritePtr),Y    ; Y is the only indirect register
     sta WSYNC               ; need a scanline
@@ -177,7 +182,8 @@ GameVisibleLine:
     dex                 ; x-- (decrement x)
     bne .GameLineLoop   ; repeat until x == 192
 
-
+    lda #0
+    sta JetAnimOffset   ; reset
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Output 30 VBLANK overscan lines to complete our frame 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -199,12 +205,16 @@ CheckP0Up:
     bit SWCHA
     bne CheckP0Down         ; 
     inc JetYPos             ; logic for Up
+    lda #0
+    sta JetAnimOffset       ; first frame
 
 CheckP0Down:
     lda #%00100000          ; player 0 joystick dn
     bit SWCHA
     bne CheckP0Left         ; 
     dec JetYPos             ; logic for dn
+    lda #0
+    sta JetAnimOffset       ; first frame
 
 
 CheckP0Left:
@@ -212,12 +222,17 @@ CheckP0Left:
     bit SWCHA
     bne CheckP0Right         ; 
     dec JetXPos              ; logic for left
+    lda JET_HEIGHT
+    sta JetAnimOffset       ; second frame
+
 
 CheckP0Right:
     lda #%10000000          ; player 0 joystick right
     bit SWCHA
     bne NoInput; 
     inc JetXPos             ; logic for a right
+    lda JET_HEIGHT
+    sta JetAnimOffset       ; second frame
 
 NoInput:
     ; logic for no input, if any
