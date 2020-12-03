@@ -15,18 +15,26 @@ JetXPos         byte    ; player 0 x-pos
 JetYPos         byte    ; player 0 y-pos
 BomberXPos      byte    ; player 1 x-pos
 BomberYPos      byte    ; player 1 y-pos
+Score           byte    ; the fact that they are right after one another
+Timer           byte    ; means somthing.
+Temp            byte
+OnesDigitOffset word    
+TensDigitOffset word
 JetSpritePtr    word    ; 2 bytes pointer 0 sprite lookup table
 JetColorPtr     word
 BomberSpritePtr word
 BomberColorPtr  word
 JetAnimOffset   byte
 Random          byte    ; random seed generated
+ScoreSprite     byte
+TimerSprite     byte
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Define Constants.
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 JET_HEIGHT = 9
 BOMBER_HEIGHT = 9
+DIGITS_HEIGHT = 5   ; score board digit height
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;  Start our ROM code segment
@@ -52,7 +60,9 @@ Reset:
     sta JetAnimOffset
     lda #%11010100
     sta Random
-
+    lda #0
+    sta Score
+    sta Timer
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Init pointers to correct lookup table addresses
@@ -106,6 +116,8 @@ StartFrame:
     ldy     #1
     jsr     SetObjectXPos
 
+    jsr     CalculateDigitOffset    
+
     sta WSYNC
     sta HMOVE          ; apply the Horizontal offset
 
@@ -129,10 +141,25 @@ StartFrame:
     sta PF2
     sta GRP0
     sta GRP1
+    lda #$1C        ; set score board to white
     sta COLUPF
-    REPEAT 20       ; display 20 empty lines (where the scores will go)
-        sta WSYNC
-    REPEND
+    lda #%00000000  ; do not reflect
+    sta CTRLPF
+    
+    ldx #DIGITS_HEIGHT      ; start X with 5
+.ScoreDigitLoop:
+    ldy TensDigitOffset     ; get the tens digit offset
+    lda Digits,Y
+    and #$F0
+    sta ScoreSprite         ; save the score 10s digit pattern
+    ldy OnesDigitOffset     ; get the tens digit offset
+    lda Digits,Y
+    and #$0F
+    ora ScoreSprite         ; save the score 10s digit pattern
+    sta ScoreSprite
+    
+    dex
+    bne .ScoreDigitLoop
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Draw the 84 visible scanlines (2 line kernal, 172/2) 
@@ -358,10 +385,150 @@ GetRandomBomberPos subroutine
     sta BomberYPos    
     rts
 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;  Subroutine to handle scoreboard digits to be displayed on the screen
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Convert high and low nibbles variable score and timer 
+;; to get the offsets of digits lookup table so the value can be displayed.
+;; Each digit has a hieght of 5 bytes
+;; For the low nibble multiply by 5.
+;;  left shift x2
+;;  for any number n*5 == n*2*2+n
+;; 
+;; For the upper nibble
+;; since already *16 (hex) we need to divide it by 16 and then multiply it
+;; by 5.
+;; - we can use right shifts to divide by 2, 
+;;  the value (n/16)/5   = n/2/2 + n/2/2/2/2
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+CalculateDigitOffset subroutine
+    ldx #1              ; x reg is the loop counter
+.PrepareScoreLoop       ; this will loop twice, first X=1, then X=0
+    lda Score,X         ; Score+1 is the Timer, due to where we declared it
+    and #$0F            ; remoce the tens digit by masking 4 bits
+    sta Temp            ; save value into Temp
+    asl                 ; * 2
+    asl                 ; * 2
+    adc Temp            ; + n
+    sta OnesDigitOffset,X
+
+    lda Score,X         ; 
+    and #$F0            ; 
+    lsr                 ; / 2 
+    lsr                 ; / 2
+    sta Temp
+    lsr
+    lsr
+    adc Temp
+    sta TensDigitOffset,X
+
+    dex                     ; x--
+    bpl .PrepareScoreLoop   
+
+    rts
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;  Lookup tables for player graphics bitmap  
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;===============================================================================
+; Digit Graphics
+;===============================================================================
+Digits:
+        .byte %01110111
+        .byte %01010101
+        .byte %01010101
+        .byte %01010101
+        .byte %01110111
+        
+        .byte %00010001
+        .byte %00010001
+        .byte %00010001
+        .byte %00010001        
+        .byte %00010001
+        
+        .byte %01110111
+        .byte %00010001
+        .byte %01110111
+        .byte %01000100
+        .byte %01110111
+        
+        .byte %01110111
+        .byte %00010001
+        .byte %00110011
+        .byte %00010001
+        .byte %01110111
+        
+        .byte %01010101
+        .byte %01010101
+        .byte %01110111
+        .byte %00010001
+        .byte %00010001
+        
+        .byte %01110111
+        .byte %01000100
+        .byte %01110111
+        .byte %00010001
+        .byte %01110111
+           
+        .byte %01110111
+        .byte %01000100
+        .byte %01110111
+        .byte %01010101
+        .byte %01110111
+        
+        .byte %01110111
+        .byte %00010001
+        .byte %00010001
+        .byte %00010001
+        .byte %00010001
+        
+        .byte %01110111
+        .byte %01010101
+        .byte %01110111
+        .byte %01010101
+        .byte %01110111
+        
+        .byte %01110111
+        .byte %01010101
+        .byte %01110111
+        .byte %00010001
+        .byte %01110111
+        
+        .byte %00100010
+        .byte %01010101
+        .byte %01110111
+        .byte %01010101
+        .byte %01010101
+         
+        .byte %01100110
+        .byte %01010101
+        .byte %01100110
+        .byte %01010101
+        .byte %01100110
+        
+        .byte %00110011
+        .byte %01000100
+        .byte %01000100
+        .byte %01000100
+        .byte %00110011
+        
+        .byte %01100110
+        .byte %01010101
+        .byte %01010101
+        .byte %01010101
+        .byte %01100110
+        
+        .byte %01110111
+        .byte %01000100
+        .byte %01100110
+        .byte %01000100
+        .byte %01110111
+        
+        .byte %01110111
+        .byte %01000100
+        .byte %01100110
+        .byte %01000100
+        .byte %01000100
 
 JetSprite:
         .byte #%00000000        ; note the additional padding 00000000
