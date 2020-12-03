@@ -20,7 +20,7 @@ JetColorPtr     word
 BomberSpritePtr word
 BomberColorPtr  word
 JetAnimOffset   byte
-
+Random          byte    ; random seed generated
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Define Constants.
@@ -42,8 +42,7 @@ Reset:
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
     lda #10         ; A = 10
     sta JetYPos     ; JetYPos = A
-    ;lda #60
-    lda #0
+    lda #60
     sta JetXPos
     lda #83
     sta BomberYPos
@@ -51,6 +50,9 @@ Reset:
     sta BomberXPos
     lda #0
     sta JetAnimOffset
+    lda #%11010100
+    sta Random
+
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Init pointers to correct lookup table addresses
@@ -119,7 +121,21 @@ StartFrame:
     sta VBLANK  ; turn off VBLANK
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; Draw the 96 visible scanlines (2 line kernal, 192/2) 
+;; display scoreboard
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+    lda #0          ; clear TIA registers before each new
+    sta PF0
+    sta PF1
+    sta PF2
+    sta GRP0
+    sta GRP1
+    sta COLUPF
+    REPEAT 20       ; display 20 empty lines (where the scores will go)
+        sta WSYNC
+    REPEND
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Draw the 84 visible scanlines (2 line kernal, 172/2) 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; fill this in
 GameVisibleLine:
@@ -141,7 +157,7 @@ GameVisibleLine:
     lda #0
     sta PF2
 
-    ldx #96            ; X counts of remaining scanlines
+    ldx #84            ; X counts of remaining scanlines
 .GameLineLoop:
 .AreWeInsideJetSprite:
     txa             ; a =x
@@ -248,9 +264,31 @@ UpdateBomberPosition:
     dec BomberYPos
     jmp EndPositionUpdate
 .ResetBomberPosition
-    lda #96
-    sta BomberYPos
+    jsr GetRandomBomberPos      ; call sub for next enemy positions
+
 EndPositionUpdate: 
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Check Collisons
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+CheckCollisionsP0P1:
+    lda #%10000000      ; bit 7
+    bit CXPPMM          ; check p0 vs p1
+    bne .CollisionP0P1  ; collision detected
+    jmp CheckCollisionP0PF
+.CollisionP0P1:
+    jsr GameOver        ; boom baby
+
+CheckCollisionP0PF:
+    lda #%10000000      ; bit 7
+    bit CXP0FB          ; check p0 vs playfield
+    bne .CollisionP0PF  ; collision detected
+    jmp EndCollisionCheck
+.CollisionP0PF:
+    jsr GameOver        ; boom baby
+
+EndCollisionCheck:      ; fallback
+    sta CXCLR           ; clear collisions
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Loop to next Frame
@@ -282,6 +320,44 @@ SetObjectXPos subroutine
     sta HMP0,Y          ; store fine offset into the HMxx
     sta RESP0,Y         ; fix object pos in the 15 step increment
     rts
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;  Subroutine to Game OVer
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+GameOver subroutine
+    ; score = 0
+    ; change background color
+    lda #$30
+    sta COLUBK
+    rts
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;  Subroutine to generate LFSR random value
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+GetRandomBomberPos subroutine
+    ; generate a random number $00-&FF
+    lda Random      ; Load starting with a random seed
+    asl             ; shift left
+    eor Random      ; XOR accumulator with Random
+    asl             ; shift left
+    eor Random      ; XOR accumulator with Random
+    asl
+    asl
+    eor Random
+    asl
+    rol Random      ; rotate left
+    ; limit value /4
+    lsr             ; divide by 2 using right shift (eg 1000 -> 0100)
+    lsr             ; divide by 2 (eg 0100 -> 0010) 
+    sta BomberXPos  ; save it
+    ; add 30 to offset the green field.
+    lda #30
+    adc BomberXPos
+    sta BomberXPos  ; save it
+    ; now the y
+    lda #96
+    sta BomberYPos    
+    rts
+
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;  Lookup tables for player graphics bitmap  

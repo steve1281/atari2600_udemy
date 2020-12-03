@@ -1213,3 +1213,143 @@ various bitmaps, thus making it look "animated".
 link: playerpal 2600
 https://alienbill.com/2600/playerpalnext.html
 
+
+# Random Numbers
+
+* ok, no such thing as a "random" number
+
+## LFSR
+
+```
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Linear-Feedback Shift Register
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Code to output a randome value in the accumulator
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+    lda Random      ; Load starting with a random seed
+    asl             ; shift left
+    eor Random      ; XOR accumulator with Random
+    asl             ; shift left
+    eor Random      ; XOR accumulator with Random
+    asl
+    asl
+    eor Random
+    asl
+    rol Random      ; rotate left
+```
+
+## Random Bits
+
+```
+GenerateRandomBit subroutine
+    lda Rand4
+    asl
+    asl
+    asl
+    asl
+    eor Rand4
+    asl
+    asl
+    rol Rand1
+    rol Rand2
+    rol Rand3
+    rol Rand4
+    rts
+
+GenerateRandomByte subroutine
+    ldx #8
+.RandomByteLoop
+    jsr GenerateRandomBit
+    dex
+    bne .RandomByteLoop
+    lda Rand1
+    rts
+
+```
+
+* so, wrt to the "bomber" game
+* generate a new random byte (value $0 to $ff)
+* divide by 4 to limit the result to match the "river" width 
+* add 30 pixels to get past the greenfield
+* 256 / 4 = 90 .. so 0 - 90
+* 30 - 120
+
+# Bit Wise
+
+* recall if you multiply by 10, you just shift left
+```
+23 * 10 = 230
+331 * 10 = 3310
+```
+* mulitply by 100? well two left shifts
+```
+ 23 * 10
+230 * 10
+2300
+```
+
+* ok, lets divide
+```
+23/10  = 02
+331/10 = 033
+51/10  = 05
+
+so, right shift.
+```
+
+* and by 100?
+```
+5911/100 = 0059
+is 5911/10 -> 0591/10 -> 0059
+```
+
+* and of course, this works in base 2
+
+* multiply by power of 2 is just a left shift 
+* divide by port of 2 is just a right shift
+```
+00000101 * 2 = 00001010
+etc etc. pretty simple really.
+```
+
+# Collisions
+
+* the TIA has 15 different collision flags
+* Pixel perfect collison between objects
+* check for collision using CX*** register
+* generally check in the update (before we end our frame)
+* strobe CXCLR clears all collisions
+
+``` 
+         d7 | d6 | d5 | d4 | d3 | d2 | d1 | d0 |  D7   |  D6   
+CXM0P   | 1 |  1 |  . |  . |  . |  . |  . |  . | M0 P1 | M0 P0
+CXM1P   | 1 |  1 |  . |  . |  . |  . |  . |  . | M1 P0 | M1 P1
+CXP0FB  | 1 |  1 |  . |  . |  . |  . |  . |  . | P0 PF | P0 BL     
+CXP1FB  | 1 |  1 |  . |  . |  . |  . |  . |  . | P1 PF | P1 BL
+CXM0FB  | 1 |  1 |  . |  . |  . |  . |  . |  . | M0 PF | M0 BL
+CXM1FB  | 1 |  . |  . |  . |  . |  . |  . |  . | M1 PF | M1 BL
+CXBLPF  | 1 |  1 |  . |  . |  . |  . |  . |  . | BL PF | unused
+CXPPMM  | 1 |  1 |  . |  . |  . |  . |  . |  . | P0 P1 | M0 M1
+```
+
+* is player0 hitting playfield?
+* CXP0FB D7 will be set
+* is player0 hitting player1 ?
+* CSPPMM D7 will be set
+
+* so, in code:
+
+```
+CheckCollisionP0PF:
+    lda #%0000000   ; bit 7
+    bit CXP0FB
+    bne .CollisionP0PF
+    jmp EndCollisionCheck
+.CollisionP0PF:
+    jsr GameOver     ; call a game over subroutine
+
+EndCollisionCheck:
+    sta CXCLR   ; finally, clear all collision flags
+
+```
+
