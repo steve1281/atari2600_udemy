@@ -32,7 +32,7 @@ TimerSprite     byte
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Define Constants.
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-JET_HEIGHT = 9
+JET_HEIGHT    = 9
 BOMBER_HEIGHT = 9
 DIGITS_HEIGHT = 5   ; score board digit height
 
@@ -77,7 +77,7 @@ Reset:
     lda #>JetColor          ; high byte
     sta JetColorPtr+1       ;
 
-    lda #<BomberSprite         ; low byte
+    lda #<BomberSprite      ; low byte
     sta BomberSpritePtr
     lda #>BomberSprite         ; high byte
     sta BomberSpritePtr+1      ;
@@ -104,6 +104,13 @@ StartFrame:
     lda #0
     sta VSYNC   ; turn off VSYNC
 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Let the TIA output the remaining lines of VBLANK 
+;; (total 37)
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+    REPEAT 33
+        sta WSYNC
+    REPEND
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Set player horizontal position while in VBLANK
@@ -121,26 +128,20 @@ StartFrame:
     sta WSYNC
     sta HMOVE          ; apply the Horizontal offset
 
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; Let the TIA output the remaining lines of VBLANK 
-;; (total 37)
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-    REPEAT 37
-        sta WSYNC
-    REPEND
     lda #0
     sta VBLANK  ; turn off VBLANK
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; display scoreboard
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
     lda #0          ; clear TIA registers before each new
     sta PF0
     sta PF1
     sta PF2
     sta GRP0
     sta GRP1
+
     lda #$1C        ; set score board to white
     sta COLUPF
     lda #%00000000  ; do not reflect
@@ -152,14 +153,46 @@ StartFrame:
     lda Digits,Y
     and #$F0
     sta ScoreSprite         ; save the score 10s digit pattern
+
     ldy OnesDigitOffset     ; get the tens digit offset
     lda Digits,Y
     and #$0F
     ora ScoreSprite         ; save the score 10s digit pattern
     sta ScoreSprite
+    sta WSYNC
+    sta PF1
+   
+    ldy TensDigitOffset+1
+    lda Digits,Y
+    and #$F0
+    sta TimerSprite
     
+    ldy OnesDigitOffset+1
+    lda Digits,Y
+    and #$0F
+    ora TimerSprite
+    sta TimerSprite
+
+    ; waste some cycles
+    jsr Sleep12Cycles       ;
+    sta PF1
+
+    ldy ScoreSprite         ; preload for next scanline
+    sta WSYNC
+    
+    sty PF1
+    inc TensDigitOffset
+    inc TensDigitOffset+1
+    inc OnesDigitOffset
+    inc OnesDigitOffset+1
+
+    jsr Sleep12Cycles
+
+
     dex
+    sta PF1
     bne .ScoreDigitLoop
+    sta WSYNC
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Draw the 84 visible scanlines (2 line kernal, 172/2) 
@@ -326,6 +359,14 @@ EndCollisionCheck:      ; fallback
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;  Subroutines
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;  Waste 12 cylces 
+;; - jsr takes 6 cycles
+;; - rts takes 6 cycles
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+Sleep12Cycles subroutine
+    rts
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; handle object horizontal position with fine offset
