@@ -291,6 +291,9 @@ CheckP0Up:
     lda #%00010000          ; player 0 joystick up
     bit SWCHA
     bne CheckP0Down         ; 
+    lda JetYPos
+    cmp #70
+    bpl CheckP0Down
     inc JetYPos             ; logic for Up
     lda #0
     sta JetAnimOffset       ; first frame
@@ -299,6 +302,9 @@ CheckP0Down:
     lda #%00100000          ; player 0 joystick dn
     bit SWCHA
     bne CheckP0Left         ; 
+    lda JetYPos
+    cmp #5
+    bmi CheckP0Left
     dec JetYPos             ; logic for dn
     lda #0
     sta JetAnimOffset       ; first frame
@@ -308,15 +314,20 @@ CheckP0Left:
     lda #%01000000          ; player 0 joystick left
     bit SWCHA
     bne CheckP0Right         ; 
+    lda JetXPos
+    cmp #35
+    bmi CheckP0Right
     dec JetXPos              ; logic for left
     lda JET_HEIGHT
     sta JetAnimOffset       ; second frame
-
 
 CheckP0Right:
     lda #%10000000          ; player 0 joystick right
     bit SWCHA
     bne EndInput; 
+    lda JetXPos
+    cmp #100
+    bpl EndInput
     inc JetXPos             ; logic for a right
     lda JET_HEIGHT
     sta JetAnimOffset       ; second frame
@@ -336,12 +347,8 @@ UpdateBomberPosition:
     jmp EndPositionUpdate
 .ResetBomberPosition
     jsr GetRandomBomberPos      ; call sub for next enemy positions
-    ldx Score
-    inx
-    stx Score
-    ldx Timer
-    inx
-    stx Timer
+    inc Score
+    inc Timer
 
 EndPositionUpdate: 
 
