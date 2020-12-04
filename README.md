@@ -976,12 +976,11 @@ write to HMP0 register to fine tune
 strobe WSYNC again
 strobe HMOVE to apply
 
-
 ```
 
 Example code:
 
-``
+```
     lda P0XPos          ; A = desired X position
     sta WSYNC           ; wait for next strobe
     sta HMCLR           ; clear old horizontal position
@@ -1002,6 +1001,7 @@ DivideLoop:
     sta HMOVE           ; apply fine position
 
 ```
+
 Next up, example in action : horizontalpos/horizontalpos.asm
 
 # Counting Clock Cycles
@@ -1295,18 +1295,18 @@ GenerateRandomByte subroutine
 51/10  = 05
 
 so, right shift.
-```
 
 * and by 100?
+
 ```
 5911/100 = 0059
 is 5911/10 -> 0591/10 -> 0059
 ```
 
 * and of course, this works in base 2
-
 * multiply by power of 2 is just a left shift 
 * divide by port of 2 is just a right shift
+
 ```
 00000101 * 2 = 00001010
 etc etc. pretty simple really.
