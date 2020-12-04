@@ -1320,7 +1320,8 @@ etc etc. pretty simple really.
 * generally check in the update (before we end our frame)
 * strobe CXCLR clears all collisions
 
-``` 
+```
+
          d7 | d6 | d5 | d4 | d3 | d2 | d1 | d0 |  D7   |  D6   
 CXM0P   | 1 |  1 |  . |  . |  . |  . |  . |  . | M0 P1 | M0 P0
 CXM1P   | 1 |  1 |  . |  . |  . |  . |  . |  . | M1 P0 | M1 P1
@@ -1330,6 +1331,7 @@ CXM0FB  | 1 |  1 |  . |  . |  . |  . |  . |  . | M0 PF | M0 BL
 CXM1FB  | 1 |  . |  . |  . |  . |  . |  . |  . | M1 PF | M1 BL
 CXBLPF  | 1 |  1 |  . |  . |  . |  . |  . |  . | BL PF | unused
 CXPPMM  | 1 |  1 |  . |  . |  . |  . |  . |  . | P0 P1 | M0 M1
+
 ```
 
 * is player0 hitting playfield?
