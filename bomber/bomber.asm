@@ -347,8 +347,19 @@ UpdateBomberPosition:
     jmp EndPositionUpdate
 .ResetBomberPosition
     jsr GetRandomBomberPos      ; call sub for next enemy positions
-    inc Score
-    inc Timer
+
+    ; -- update timer and score
+.SetScoreValues:
+    sed                 ; activate decimal mode
+    lda Score
+    clc
+    adc #1              ; BCD doesn't like increment.
+    sta Score
+    lda Timer
+    clc
+    adc #1
+    sta Timer
+    cld                 ; close decimal mode
 
 EndPositionUpdate: 
 
