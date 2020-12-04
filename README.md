@@ -1293,6 +1293,7 @@ GenerateRandomByte subroutine
 23/10  = 02
 331/10 = 033
 51/10  = 05
+```
 
 so, right shift.
 
