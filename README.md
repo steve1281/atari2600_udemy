@@ -1353,3 +1353,8 @@ EndCollisionCheck:
 
 ```
 
+# TIMING
+
+link: https://www.randomterrain.com/atari-2600-memories-tutorial-andrew-davie-17.html
+
+

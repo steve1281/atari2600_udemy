@@ -60,8 +60,9 @@ Reset:
     sta JetAnimOffset
     lda #%11010100
     sta Random
-    lda #0
+    lda #4
     sta Score
+    lda #8
     sta Timer
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -136,13 +137,14 @@ StartFrame:
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
     lda #0          ; clear TIA registers before each new
+    sta COLUBK
     sta PF0
     sta PF1
     sta PF2
     sta GRP0
     sta GRP1
 
-    lda #$1C        ; set score board to white
+    lda #$1E        ; set score board to white
     sta COLUPF
     lda #%00000000  ; do not reflect
     sta CTRLPF
@@ -193,6 +195,13 @@ StartFrame:
     sta PF1
     bne .ScoreDigitLoop
     sta WSYNC
+    lda #0
+    sta PF0
+    sta PF1
+    sta PF2
+    sta WSYNC
+    sta WSYNC
+    sta WSYNC
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Draw the 84 visible scanlines (2 line kernal, 172/2) 
@@ -217,7 +226,7 @@ GameVisibleLine:
     lda #0
     sta PF2
 
-    ldx #84            ; X counts of remaining scanlines
+    ldx #85            ; X counts of remaining scanlines
 .GameLineLoop:
 .AreWeInsideJetSprite:
     txa             ; a =x
