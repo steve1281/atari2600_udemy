@@ -28,6 +28,8 @@ JetAnimOffset   byte
 Random          byte    ; random seed generated
 ScoreSprite     byte
 TimerSprite     byte
+TerrainColor    byte
+RiverColor      byte
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Define Constants.
@@ -60,9 +62,9 @@ Reset:
     sta JetAnimOffset
     lda #%11010100
     sta Random
-    lda #4
+    lda #0
     sta Score
-    lda #8
+    lda #0
     sta Timer
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -208,11 +210,11 @@ StartFrame:
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; fill this in
 GameVisibleLine:
-    lda #$84        ; blue
-    sta COLUBK      ; background
-
-    lda #$C2        ; green
+    lda TerrainColor
     sta COLUPF      ; playfield
+
+    lda RiverColor
+    sta COLUBK      ; background
 
     lda #%00000001  ; set d0 to 1
     sta CTRLPF      ; playfield reflect
@@ -334,6 +336,12 @@ UpdateBomberPosition:
     jmp EndPositionUpdate
 .ResetBomberPosition
     jsr GetRandomBomberPos      ; call sub for next enemy positions
+    ldx Score
+    inx
+    stx Score
+    ldx Timer
+    inx
+    stx Timer
 
 EndPositionUpdate: 
 
@@ -344,16 +352,9 @@ CheckCollisionsP0P1:
     lda #%10000000      ; bit 7
     bit CXPPMM          ; check p0 vs p1
     bne .CollisionP0P1  ; collision detected
-    jmp CheckCollisionP0PF
-.CollisionP0P1:
-    jsr GameOver        ; boom baby
-
-CheckCollisionP0PF:
-    lda #%10000000      ; bit 7
-    bit CXP0FB          ; check p0 vs playfield
-    bne .CollisionP0PF  ; collision detected
+    jsr SetTerrainRiverColor    ; else set playfield to green/blue
     jmp EndCollisionCheck
-.CollisionP0PF:
+.CollisionP0P1:
     jsr GameOver        ; boom baby
 
 EndCollisionCheck:      ; fallback
@@ -368,6 +369,16 @@ EndCollisionCheck:      ; fallback
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;  Subroutines
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Set colors terrian and river 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+SetTerrainRiverColor subroutine
+    lda #$C2
+    sta TerrainColor
+    lda #$84
+    sta RiverColor
+    rts
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;  Waste 12 cylces 
@@ -402,11 +413,15 @@ SetObjectXPos subroutine
 ;  Subroutine to Game OVer
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 GameOver subroutine
-    ; score = 0
     ; change background color
     lda #$30
-    sta COLUBK
+    sta TerrainColor
+    sta RiverColor 
+
+    lda #0
+    sta Score 
     rts
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;  Subroutine to generate LFSR random value
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
