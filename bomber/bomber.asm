@@ -257,7 +257,7 @@ GameVisibleLine:
     txa             ; a =x
     sec             ; set carry flag before subtraction
     sbc JetYPos     ; 
-    cmp JET_HEIGHT  ; less than, then drawing JetSprite
+    cmp #JET_HEIGHT  ; less than, then drawing JetSprite
     bcc .DrawSpriteP0   
     lda #0          ; else, set up lookup index 0
 
@@ -275,7 +275,7 @@ GameVisibleLine:
     txa             ; a =x
     sec             ; set carry flag before subtraction
     sbc BomberYPos     ; 
-    cmp BOMBER_HEIGHT  ; less than, then drawing JetSprite
+    cmp #BOMBER_HEIGHT  ; less than, then drawing JetSprite
     bcc .DrawSpriteP1   
     lda #0          ; else, set up lookup index 0
 
@@ -344,7 +344,7 @@ CheckP0Left:
     bmi CheckP0Right
 .P0LeftPressed:
     dec JetXPos              ; logic for left
-    lda JET_HEIGHT
+    lda #JET_HEIGHT
     sta JetAnimOffset       ; second frame
 
 CheckP0Right:
@@ -356,7 +356,7 @@ CheckP0Right:
     bpl CheckButtonPressed
 .P0RightPressed:
     inc JetXPos             ; logic for a right
-    lda JET_HEIGHT
+    lda #JET_HEIGHT
     sta JetAnimOffset       ; second frame
 
 CheckButtonPressed:
