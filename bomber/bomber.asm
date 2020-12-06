@@ -15,6 +15,8 @@ JetXPos         byte    ; player 0 x-pos
 JetYPos         byte    ; player 0 y-pos
 BomberXPos      byte    ; player 1 x-pos
 BomberYPos      byte    ; player 1 y-pos
+MissileXPos     byte
+MissileYPos     byte
 Score           byte    ; the fact that they are right after one another
 Timer           byte    ; means somthing.
 Temp            byte
@@ -66,6 +68,22 @@ Reset:
     sta Score
     lda #0
     sta Timer
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Declare Macros
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+    MAC DRAW_MISSILE
+        lda #%00000000          
+        ; x register is counting scanline
+        ; is this scanline that matches the MissileYPos?
+        cpx MissileYPos
+        bne .SkipMissileDraw
+.DrawMissile:
+        lda #%00000010          ; second bit enable missile 0 display
+        inc MissileYPos
+.SkipMissileDraw:
+        sta ENAM0
+    ENDM
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Init pointers to correct lookup table addresses
@@ -126,6 +144,9 @@ StartFrame:
     ldy     #1
     jsr     SetObjectXPos
 
+    lda     MissileXPos
+    ldy     #2
+    jsr     SetObjectXPos
     jsr     CalculateDigitOffset    
 
     sta WSYNC
@@ -230,6 +251,8 @@ GameVisibleLine:
 
     ldx #85            ; X counts of remaining scanlines
 .GameLineLoop:
+    DRAW_MISSILE        ; macro to check if we should draw the missile. (similair to subroutine, but dasm)
+
 .AreWeInsideJetSprite:
     txa             ; a =x
     sec             ; set carry flag before subtraction
@@ -294,6 +317,7 @@ CheckP0Up:
     lda JetYPos
     cmp #70
     bpl CheckP0Down
+.P0UpPressed:
     inc JetYPos             ; logic for Up
     lda #0
     sta JetAnimOffset       ; first frame
@@ -305,6 +329,7 @@ CheckP0Down:
     lda JetYPos
     cmp #5
     bmi CheckP0Left
+.P0DownPressed:
     dec JetYPos             ; logic for dn
     lda #0
     sta JetAnimOffset       ; first frame
@@ -317,6 +342,7 @@ CheckP0Left:
     lda JetXPos
     cmp #35
     bmi CheckP0Right
+.P0LeftPressed:
     dec JetXPos              ; logic for left
     lda JET_HEIGHT
     sta JetAnimOffset       ; second frame
@@ -324,14 +350,29 @@ CheckP0Left:
 CheckP0Right:
     lda #%10000000          ; player 0 joystick right
     bit SWCHA
-    bne EndInput; 
+    bne CheckButtonPressed  ; 
     lda JetXPos
     cmp #100
-    bpl EndInput
+    bpl CheckButtonPressed
+.P0RightPressed:
     inc JetXPos             ; logic for a right
     lda JET_HEIGHT
     sta JetAnimOffset       ; second frame
 
+CheckButtonPressed:
+    lda #%10000000
+    bit INPT4
+    bne EndInput
+.ButtonPressed:
+    lda JetXPos
+    clc
+    adc #5
+    sta MissileXPos
+    lda JetYPos
+    clc
+    adc #8
+    sta MissileYPos
+ 
 EndInput: 
 
 
