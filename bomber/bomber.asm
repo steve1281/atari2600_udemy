@@ -80,7 +80,7 @@ Reset:
         bne .SkipMissileDraw
 .DrawMissile:
         lda #%00000010          ; second bit enable missile 0 display
-        inc MissileYPos
+        inc MissileYPos         ; what if this goes off screen??
 .SkipMissileDraw:
         sta ENAM0
     ENDM
@@ -150,6 +150,7 @@ StartFrame:
 
     jsr     CalculateDigitOffset    
     jsr     GenerateJetSound        ; configure/enable sound for player0 (Jet)
+    jsr     GenerateMissileSound
 
     sta WSYNC
     sta HMOVE          ; apply the Horizontal offset
@@ -428,6 +429,7 @@ CheckCollisionM0P1:
     cld
     lda #0
     sta MissileYPos
+    
         
 
 EndCollisionCheck:      ; fallback
@@ -476,6 +478,49 @@ GenerateJetSound subroutine
     sta AUDC0 
     
         
+    rts
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;  Generate/Configure sound for missile fired
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+GenerateMissileSound subroutine
+    ; when there is a missile active, play sound
+    ; putting the missile sounds on channel 1
+
+    lda MissileYPos
+    cmp #0                      ; recall, collision resets this 0
+    beq .CollisionNoise
+
+    ; also compare if bigger than hex 55 (figured this out in stella debug mode)
+    cmp #$55
+    bpl .SkipMissileNoise
+
+.MissileActive:
+    lda #3          ; set volume to 3
+    sta AUDV1
+    lda MissileYPos ; convert the Missile Position 0-21
+    lsr
+    lsr
+    lsr
+    sta Temp
+    lda #21
+    sec
+    sbc Temp    
+    sta AUDF1
+
+    lda #4
+    sta AUDC1
+    jmp .MissileEnd
+
+.CollisionNoise:
+    ; --- lets make a quick boom sound, and then let the logic 
+ 
+.SkipMissileNoise:
+    lda #0          ;  no missile active, no noise.
+    sta AUDV1
+
+.MissileEnd:
+
     rts
 
 
