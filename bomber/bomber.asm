@@ -390,12 +390,8 @@ UpdateBomberPosition:
     jsr GetRandomBomberPos      ; call sub for next enemy positions
 
     ; -- update timer and score
-.SetScoreValues:
+.SetTimerValues:
     sed                 ; activate decimal mode
-    lda Score
-    clc
-    adc #1              ; BCD doesn't like increment.
-    sta Score
     lda Timer
     clc
     adc #1
@@ -412,9 +408,25 @@ CheckCollisionsP0P1:
     bit CXPPMM          ; check p0 vs p1
     bne .CollisionP0P1  ; collision detected
     jsr SetTerrainRiverColor    ; else set playfield to green/blue
-    jmp EndCollisionCheck
+    jmp CheckCollisionM0P1
 .CollisionP0P1:
     jsr GameOver        ; boom baby
+
+CheckCollisionM0P1:
+    lda #%10000000   ; bit 7
+    bit CXM0P
+    bne .CollisionM0P1
+    jmp EndCollisionCheck
+.CollisionM0P1:
+    sed
+    lda Score
+    clc
+    adc #1
+    sta Score
+    cld
+    lda #0
+    sta MissileYPos
+        
 
 EndCollisionCheck:      ; fallback
     sta CXCLR           ; clear collisions
