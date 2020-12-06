@@ -1360,4 +1360,42 @@ EndCollisionCheck:
 
 link: https://www.randomterrain.com/atari-2600-memories-tutorial-andrew-davie-17.html
 
+# Audio via TIA
+
+* two sound channels - so we can play two sounds at once.
+* (sound on the TV, no speakers on atari2600)
+* pitch, frequency, volume, distoration
+
+```
+register | register | description ....               | range of value
+channel0 | channel1 |                                | 
+---------+----------+--------------------------------+--------------------------------------------------
+AUDV0    | AUDV1    | changes volume (intensity)     | 0 (off) to 15 highest
+AUDF0    | AUDF1    | changes frequency (pitch)      | 0 (highest pitch) to 31 (lowest pitch)
+AUDC0    | AUDC1    | changes tone type (distoration | 0 to 15 (pure tone, noise, square wave, buzz, etc
+```
+
+* break down the AUDCn :
+
+````
+Value  |  Tone Type
+-------+-----------------------------
+  0    | Silent
+  1    | Buzz
+  2    | Rumble
+  3    | Rumble
+  4    | Pure
+  5    | Pure
+  6    | Square Wave
+  7    | Buzz
+  8    | White Noise 
+  9    | Buzz
+ 10    | Square Wave
+ 11    | Silent
+ 12    | Pure Tone
+ 13    | Pure Tone
+ 14    | Square Tone
+ 15    | Buzz
+
+```
 
