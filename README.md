@@ -1399,3 +1399,17 @@ Value  |  Tone Type
 
 ```
 
+# debugging tool: Gopher2600
+
+* link: https://github.com/JetSetIlly/Gopher2600
+* written in go
+
+
+# Resources
+
+* Stella community/ manual
+* AtariAge forum
+* Steven Hugg's 8BitWorkshop
+* Javatari emulator
+* Open source games - look at the code, see what folks are doing
+

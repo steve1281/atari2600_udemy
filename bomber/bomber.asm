@@ -129,7 +129,7 @@ StartFrame:
 ;; Let the TIA output the remaining lines of VBLANK 
 ;; (total 37)
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-    REPEAT 32
+    REPEAT 31
         sta WSYNC
     REPEND
 
@@ -252,7 +252,7 @@ GameVisibleLine:
     lda #0
     sta PF2
 
-    ldx #85            ; X counts of remaining scanlines
+    ldx #89            ; X counts of remaining scanlines
 .GameLineLoop:
     DRAW_MISSILE        ; macro to check if we should draw the missile. (similair to subroutine, but dasm)
 
