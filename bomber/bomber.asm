@@ -129,7 +129,7 @@ StartFrame:
 ;; Let the TIA output the remaining lines of VBLANK 
 ;; (total 37)
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-    REPEAT 33
+    REPEAT 32
         sta WSYNC
     REPEND
 
@@ -147,7 +147,9 @@ StartFrame:
     lda     MissileXPos
     ldy     #2
     jsr     SetObjectXPos
+
     jsr     CalculateDigitOffset    
+    jsr     GenerateJetSound        ; configure/enable sound for player0 (Jet)
 
     sta WSYNC
     sta HMOVE          ; apply the Horizontal offset
@@ -440,6 +442,42 @@ EndCollisionCheck:      ; fallback
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;  Subroutines
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;  Generate/Configure sound for player 0 (JET)
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+GenerateJetSound subroutine
+    ; -- freq needs to change based on JetY pos.
+    ; -- volume, freq, tone type 
+    ; how loud? 0 - 15
+    lda #3
+    sta AUDV0
+
+    ; what freq? 0-31, 0 is highest
+    ; what to map from the screen to the 0-31 range
+    ; from the bottom () to the top ()
+    ; 0 - 80; so divide JetYPosition/8 
+    ; of course divide by 8 is 2/2/2 - so LSRs
+    lda JetYPos     ; y pos of the player 0 (jet)
+    lsr
+    lsr
+    lsr
+    ; need a number 0 - 31 
+    ; also, we want to inverse this, we want high pitch when result 
+    ; AUDF0 = 31 - (y/8) 
+    sta Temp
+    lda #31     ; max
+    sec         ; set carry
+    sbc Temp    ; subract
+    sta AUDF0
+
+    ; what tone? 0-31, lookup on table in notes. 
+    lda #8      ; white noise
+    sta AUDC0 
+    
+        
+    rts
+
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Set colors terrian and river 
